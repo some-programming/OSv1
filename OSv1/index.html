@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Password and Passphrase Example</title>
+<script>
+function checkCredentials() {
+  const enteredPassword = document.getElementById("password").value;
+  const enteredPassphrase = document.getElementById("passphrase").value;
+
+  // In a real application, you would NOT store credentials like this.
+  // This is for demonstration purposes ONLY.  Real systems use hashing and salting.
+  const correctPassword = "password";  // Replace with a secure hashing method in a real app
+  const correctPassphrase = "submit"; // Replace with a secure hashing method in a real app
+
+  if (enteredPassword === correctPassword && enteredPassphrase === correctPassphrase) {
+    alert("Access Granted!");
+    // Redirect to the protected content or perform other actions.
+    window.location.href = "main.html"; // Example redirect
+  } else {
+    alert("Incorrect Password or Passphrase.");
+  }
+}
+</script>
+</head>
+<body>
+  <center style="margin-top: 15%; background-color: grey; border-radius: 15px; width: 25%; margin-left: 37.5%;">
+<h1>enter the password</h1>
+
+<p style="color: rgb(235, 235, 235);"></p>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password"><br><br>
+
+<label for="passphrase">Passphrase:</label>
+<input type="password" id="passphrase" name="passphrase"><br><br>
+
+<button onclick="checkCredentials()">Submit</button>
+</center>
+</body>
+</html>

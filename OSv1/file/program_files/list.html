@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List</title>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #list-container {
+        width: 400px;
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+      h2 {
+        text-align: center;
+      }
+      .category {
+        font-weight: bold;
+        margin-top: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #ccc;
+        cursor: pointer;
+      }
+      .category.collapsed ul {
+        display: none;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      li {
+        display: flex;
+        align-items: center;
+        padding: 5px;
+        border-bottom: 1px solid #eee;
+        cursor: move;
+      }
+      li:last-child {
+        border-bottom: none;
+      }
+      li span {
+        flex-grow: 1;
+      }
+      li button {
+        margin-left: 5px;
+      }
+      #add-item {
+        margin-top: 10px;
+        display: flex;
+        gap: 5px;
+      }
+      #add-item input {
+        flex-grow: 1;
+      }
+      #category-select {
+        margin-right: 5px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <header>
+      <h2>My List</h2>
+    </header>
+
+    <main>
+      <div id="list-container">
+        <div id="categories-container"></div>
+        <div id="add-item">
+          <select id="category-select">
+            <option value="Links">Links</option>
+            <option value="Proxies">Proxies</option>
+          </select>
+          <input type="text" id="new-item-text" placeholder="Enter new item">
+          <button onclick="addItem()">Add Item</button>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const categoriesContainer = document.getElementById('categories-container');
+      const categorySelect = document.getElementById('category-select');
+      const newItemText = document.getElementById('new-item-text');
+
+      window.addEventListener('DOMContentLoaded', () => {
+        loadListFromStorage();
+        loadCategoriesFromStorage();
+      });
+
+      function addItem() {
+        const newItem = newItemText.value.trim();
+        const selectedCategory = categorySelect.value;
+
+        if (newItem !== "") {
+          const li = document.createElement('li');
+          const span = document.createElement('span');
+          span.textContent = newItem;
+          const removeButton = document.createElement('button');
+          removeButton.textContent = "Remove";
+          removeButton.onclick = () => removeItem(li);
+          li.appendChild(span);
+          li.appendChild(removeButton);
+
+          const categoryList = document.querySelector(`ul[data-category="${selectedCategory}"]`);
+          if (categoryList) {
+            categoryList.appendChild(li);
+          } else {
+            createCategory(selectedCategory);
+            const newCategoryList = document.querySelector(`ul[data-category="${selectedCategory}"]`);
+            newCategoryList.appendChild(li);
+          }
+          newItemText.value = "";
+          makeItemsDraggable();
+          saveListToStorage();
+        }
+      }
+
+      function removeItem(item) {
+        item.parentNode.removeChild(item);
+        saveListToStorage();
+      }
+
+      function makeItemsDraggable() {
+        const listItems = document.querySelectorAll('li');
+        listItems.forEach(item => {
+          item.draggable = true;
+
+          item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', item.textContent);
+            item.classList.add('dragging');
+          });
+
+          item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggedOverElement = findDragOverElement(categoriesContainer, e.clientY); // Check within container
+            if (draggedOverElement == null) return;
+
+            // Find the correct ul to insert into
+            const targetUl = draggedOverElement.closest('ul');
+            if (targetUl) {
+              targetUl.insertBefore(item, draggedOverElement);
+            }
+          });
+
+          item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            saveListToStorage();
+          });
+        });
+      }
+
+      function findDragOverElement(container, y) {
+        const draggableElements = container.querySelectorAll('li:not(.dragging)');
+
+        return Array.from(draggableElements).reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child }
+          } else {
+            return closest
+          }
+        }, { offset: Number.NEGATIVE_INFINITY }).element
+      }
+
+
+      function saveListToStorage() {
+        const listData = {};
+        document.querySelectorAll('ul').forEach(ul => {
+          const category = ul.dataset.category;
+          const items = Array.from(ul.querySelectorAll('li span')).map(span => span.textContent);
+          listData[category] = items;
+        });
+        localStorage.setItem('myList', JSON.stringify(listData));
+      }
+
+      function loadListFromStorage() {
+        const storedList = localStorage.getItem('myList');
+        if (storedList) {
+          const listData = JSON.parse(storedList);
+          for (const category in listData) {
+            createCategory(category);
+            const ul = document.querySelector(`ul[data-category="${category}"]`);
+            listData[category].forEach(itemText => {
+              const li = document.createElement('li');
+              const span = document.createElement('span');
+              span.textContent = itemText;
+              const removeButton = document.createElement('button');
+              removeButton.textContent = "Remove";
+              removeButton.onclick = () => removeItem(li);
+              li.appendChild(span);
+              li.appendChild(removeButton);
+              ul.appendChild(li);
+            });
+          }
+          makeItemsDraggable();
+        }
+      }
+
+      function createCategory(categoryName) {
+        if (!document.querySelector(`ul[data-category="${categoryName}"]`)) {
+          const categoryDiv = document.createElement('div');
+          categoryDiv.classList.add('category');
+          categoryDiv.textContent = categoryName;
+
+          categoryDiv.addEventListener('click', () => {
+            categoryDiv.classList.toggle('collapsed');
+          });
+
+          const ul = document.createElement('ul');
+          ul.dataset.category = categoryName;
+          categoryDiv.appendChild(ul);
+          categoriesContainer.appendChild(categoryDiv);
+
+          const option = document.createElement('option');
+          option.value = categoryName;
+          option.text = categoryName;
+          categorySelect.appendChild(option);
+
+          saveCategoriesToStorage();
+        }
+      }
+
+      function saveCategoriesToStorage() {
+        const categories = Array.from(categorySelect.options).map(option => option.value).filter(cat => cat !== 'Links' && cat !== 'Proxies'); // Exclude default options
+        localStorage.setItem('myCategories', JSON.stringify(categories));
+      }
+
+      function loadCategoriesFromStorage() {
+        const storedCategories = localStorage.getItem('myCategories');
+        if (storedCategories) {
+          const categories = JSON.parse(storedCategories);
+          categories.forEach(category => {
+            createCategory(category);
+          });
+        }
+      }
+
+    </script>
+
+  </body>
+</html>

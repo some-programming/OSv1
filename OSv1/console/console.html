@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Command Prompt</title>
+<style>
+body {
+  background-color: #000;
+  color: #0f0;
+  font-family: monospace;
+  margin: 0;
+  overflow: hidden;
+}
+
+#console {
+  padding: 10px;
+  height: 95vh;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+#prompt {
+  display: inline-block;
+}
+
+#command {
+  background: transparent;
+  border: none;
+  color: #0f0;
+  outline: none;
+  font-family: monospace;
+  width: 80%;
+}
+
+.history-item {
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="console">
+  <div id="prompt">C:\> </div>
+  <input type="text" id="command" autofocus>
+</div>
+
+<script>
+const consoleOutput = document.getElementById('console');
+const commandInput = document.getElementById('command');
+const prompt = document.getElementById('prompt');
+
+let commandHistory = [];
+let historyIndex = -1;
+
+commandInput.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+
+    const command = commandInput.value;
+    commandHistory.push(command);
+    historyIndex = commandHistory.length - 1;
+
+    consoleOutput.innerHTML += prompt.textContent + command + "<br>";
+
+    let output = processCommand(command);
+    consoleOutput.innerHTML += output + "<br>";
+
+    commandInput.value = '';
+
+    setTimeout(() => {
+        commandInput.focus();
+    }, 0);
+
+    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    historyIndex--;
+    if (historyIndex < 0) {
+      historyIndex = 0;
+    }
+    commandInput.value = commandHistory[historyIndex] || "";
+  } else if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    historyIndex++;
+    if (historyIndex >= commandHistory.length) {
+      historyIndex = commandHistory.length - 1;
+    }
+    commandInput.value = commandHistory[historyIndex] || "";
+  }
+});
+
+function processCommand(command) {
+  command = command.trim().toLowerCase();
+
+  if (command === "help") {
+    return "Available commands: help, time, date, clear, history, echo";
+  } else if (command === "time") {
+    return new Date().toLocaleTimeString();
+  } else if (command === "date") {
+    return new Date().toLocaleDateString();
+  } else if (command === "clear" || command === "cls"){
+    consoleOutput.innerHTML = "";
+    return "";
+  } else if (command === "history") {
+    let historyOutput = "";
+    for (let i = 0; i < commandHistory.length; i++) {
+      historyOutput += `<div class="history-item" onclick="recallCommand(${i})">${i+1}. ${commandHistory[i]}</div>`;
+    }
+    return historyOutput;
+  } else if (command.startsWith("echo ")) {
+      return command.substring(5);
+  } else {
+    return "Command not recognized.";
+  }
+}
+
+function recallCommand(index) {
+  commandInput.value = commandHistory[index];
+  historyIndex = index;
+}
+
+</script>
+
+</body>
+</html>

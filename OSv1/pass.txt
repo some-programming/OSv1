@@ -1,0 +1,2 @@
+  const correctPassword = "evib hzuv kzhhdliw";  // Replace with a secure hashing method in a real app
+  const correctPassphrase = "i dunno"; // Replace with a secure hashing method in a real app

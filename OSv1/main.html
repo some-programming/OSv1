@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="mainstyle.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSv1</title>
+</head>
+<body>
+    <header>
+        <div id="main">
+            <button class="gridbutton" onclick="window.location.href = 'console/console.html'">Console</button>
+            <button class="gridbutton" id="toggle-iframe" onclick="document.getElementById('draggableiframe').src = ''">List</button>
+        </div>
+    </header>
+    <footer id="footer">
+        <p></p>
+    </footer>
+    <div id="customContextMenu">
+        <button onclick="location.reload()">Refresh</button>
+        <hr>
+        <button onclick=""></button>
+    </div>
+    <div id="iframe-container" style="display: none;">
+        <div id="iframe-header">
+          <span>Draggable iFrame</span>
+          <div>  <button class="fullscreen-button" onclick="toggleFullscreen()">Fullscreen</button>
+              <button class="close-button" onclick="closeIframe()">Close</button>
+          </div>
+        </div>
+        <div id="iframe-content">
+          <iframe src="file/program_files/list.html" id="draggableiframe"></iframe>
+        </div>
+      </div>
+    <script src="mainscript.js"></script>
+</body>
+</html>
